@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>02_Bayesian_Inference.html</title>
+<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=utf-8"/>
+<link rel="stylesheet" type="text/css" media="all" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css"  />
+<link rel="stylesheet" type="text/css" media="all" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/styles/github.min.css"  /><meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'><style> body { box-sizing: border-box; max-width: 740px; width: 100%; margin: 40px auto; padding: 0 10px; } </style><script id='MathJax-script' async src='https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'></script><script src='https://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/highlight.min.js'></script><script>document.addEventListener('DOMContentLoaded', () => { document.body.classList.add('markdown-body'); document.querySelectorAll('pre[lang] > code').forEach((code) => { code.classList.add(code.parentElement.lang); }); document.querySelectorAll('pre > code').forEach((code) => { hljs.highlightBlock(code); }); });</script>
+</head>
+
+<body>
+
+<h1 id="bayesian-inference">Bayesian inference</h1>
+<p>Vidéo: https://www.youtube.com/watch?v=guTdrfycW2Q&amp;list=PLDcUM9US4XdMROZ57-OIRtIK0aOynbgZN&amp;index=3</p>
+<h2 id="premier-exemple-la-terre">Premier exemple: la Terre</h2>
+<p>On connaît la répartition terre/eau grâce à son observation mais on pourrait imaginer des météorites s’écrasant aléatoirement à sa surface et en déduire cette répartition.</p>
+<p>Un premier jeux de données:</p>
+<p><code>LWLLWWWLWW</code></p>
+<p>L: Land W: Water</p>
+<p>Comment utilise t on cet échantillon? Comment le résume t on ? Comment représente t on l’incertitude?</p>
+<p>On va compter tous les chemins que peuvent prendre le jeux de données. Les chemins les plus nombreux sont les plus possibles.</p>
+<p>Dans le cas de notre exemple toutes les proportions eau/terre sont possibles: de 0 à 1. C’est un cas un peu complexe alors on va partir d’un cas un peu plus simple: des billes dans un sac.</p>
+<h3 id="détour-par-les-billes-dans-un-sac">Détour par les billes dans un Sac</h3>
+<p>Le cas contient 4 billes, certaines sont bleus d’autres blanches. On ne connaît pas leur proportion.</p>
+<p>Il y a cependant 5 possibilités:</p>
+<ol type="1">
+<li><code>WWWW</code><br />
+</li>
+<li><code>BWWW</code><br />
+</li>
+<li><code>BBWW</code><br />
+</li>
+<li><code>BBBW</code><br />
+</li>
+<li><code>BBBB</code></li>
+</ol>
+<p>On a pris un échantillon <code>BWB</code>.</p>
+<p>Combien y a-t-il de chemins possible pour obtenir cette observation?</p>
+<p>Prenons le cas (2) pour commencer, qu’est ce que cela signifie?</p>
+<p>On va utiliser <em>the garden of forking data</em>.</p>
+<p>Premier tirage: 3W et 1B Second tirage (pour chaque possibilité obtenu au préalable): 3W et 1B Troisième tirage (idem): 3W et 1B</p>
+<p>Pour ce cas cela fait 4 x 4 x 4.</p>
+<p>Si on compte:</p>
+<ul>
+<li><p>chemins possibles pour 1B premier tirage: 1</p></li>
+<li><p>chemins possibles pour 1B puis 1W second tirage: 3</p></li>
+<li><p>chemins possibles pour 1B puis 1W puis 1B troisième tirage: 3</p></li>
+</ul>
+<p>On a donc 3 chemins possibles pour produire notre échantillon si on assume une des possibilités (la (2)). L’échantillon nous permet d’exclure les possibilités (1) et (5) car elles ne peuvent se réaliser.</p>
+<p>Si on prend la possibilité (3):</p>
+<ul>
+<li><p>2 chemins possibles pour 1B au premier tirage</p></li>
+<li><p>4 chemins possibles pour 1B -&gt; 1W au second tirage</p></li>
+<li><p>8 chemins possibles pour 1B -&gt; 1W -&gt; 1B au troisième tirage</p></li>
+</ul>
+<p>Si on prend la possibilités (4): 6 chemins possibles</p>
+<p>Si on récupère toutes possibilités:</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Possibilités</th>
+<th><em>p</em></th>
+<th style="text-align: center;">Billes</th>
+<th style="text-align: center;">Chemins</th>
+<th>probabilité</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">(1)</td>
+<td>0</td>
+<td style="text-align: center;">WWWW</td>
+<td style="text-align: center;">0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">(2)</td>
+<td>0.25</td>
+<td style="text-align: center;">BWWW</td>
+<td style="text-align: center;">3</td>
+<td>0.15</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">(3)</td>
+<td>0.5</td>
+<td style="text-align: center;">BBWW</td>
+<td style="text-align: center;">8</td>
+<td>0.40</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">(4)</td>
+<td>0.75</td>
+<td style="text-align: center;">BBBW</td>
+<td style="text-align: center;">9</td>
+<td>0.45</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">(5)</td>
+<td>1</td>
+<td style="text-align: center;">BBBB</td>
+<td style="text-align: center;">0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Things that can happen more ways are more plausible</p>
+</blockquote>
+<p><em>P</em> est la probabilité de bleu</p>
+<p>la plausibilité pour chaque possibilité est son nombre de chemins divisés par le nombre de chemins possible.</p>
+<pre class="r="><code>chemins &lt;- c(3, 8, 9)
+chemins/sum(chemins)</code></pre>
+<p>On peut mettre à jour notre raisonnement avec plus de données: “<em>Bayesian updating</em>” (mise à jour bayesienne ?).</p>
+<p>Ici on tire une autre bille bleu:</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Possibilités</th>
+<th style="text-align: center;">chemin 1B</th>
+<th style="text-align: center;">a priori</th>
+<th style="text-align: center;"><em>count</em></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">WWWW</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">BWWW</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">BBWW</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">16</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">BBBW</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">27</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">BBBB</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
+<p>Les règles sont:</p>
+<ol type="1">
+<li>Avoir un modèle explicatif de comment chaque observations est produite en fonction de toutes les possibilités<br />
+</li>
+<li>Compter les moyens de produire ce que l’on observe pour chaque possibilités<br />
+</li>
+<li>Les plausibles le sont par rapport aux options de (2)</li>
+</ol>
+<h3 id="on-retourne-au-globe">On retourne au globe</h3>
+<blockquote>
+<p><code>density</code>: relative plausibility of proportion of water</p>
+</blockquote>
+<p>La courbe, avec l’augmentation du nombre d’échantillon, devient de plus en plus haute et mince. Le nombre de plausibles relatifs est fixe, la somme de proportion est toujours de 1.</p>
+<p>La surface en dessous de la courbe représente une somme de 1.</p>
+<p>On peut bien sûr faire l’ensemble de la procédure d’un coup mais elle peut aussi être décomposé comme dans la vidéo.</p>
+<h4 id="on-peut-retenir">On peut retenir:</h4>
+<ol type="1">
+<li><p>Pas de taille minimale d’échantillon, 0 est même suffisant (pour comprendre le modèle).</p></li>
+<li><p>Toute la forme de la courbe reprend la taille de l’échantillon.</p></li>
+<li><p>Pas d’estimateur ponctuel (central ?), l’estimateur est la courbe.</p></li>
+</ol>
+<blockquote>
+<p>The <strong>distribution</strong> is the estimate</p>
+</blockquote>
+<blockquote>
+<p>Summary is always the last step</p>
+</blockquote>
+<ol start="4" type="1">
+<li>Il n’y a pas “un” intervalle (95%, 89% etc..)</li>
+</ol>
+<p>Rien de particulier apparaît à leur limite, il n’y a pas de frontière “physique”.</p>
+<p>Dans le cadre d’analyse bayesienne il n’y pas de contrôle d’erreur (<em>error control</em>) à base d’intervalles.</p>
+<h2 id="formaliser-ce-que-lon-nos-premiers-exemples">Formaliser ce que l’on nos premiers exemples</h2>
+<p>Le premier travail est d’écrire nos hypothèses et toutes leurs probabilités.</p>
+<p><span class="math display">\[Pr(W, L|P) = /frac{(W+L)!}{W!L!}\]</span></p>
+
+</body>
+</html>
