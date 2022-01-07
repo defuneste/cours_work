@@ -2,6 +2,8 @@
 
 Vidéo: https://www.youtube.com/watch?v=guTdrfycW2Q&list=PLDcUM9US4XdMROZ57-OIRtIK0aOynbgZN&index=3
 
+NB: J'ai complété avec la lecture du chapitre 2
+
 ## Premier exemple: la Terre
 
 On connaît la répartition terre/eau grâce à son observation mais on pourrait imaginer des météorites s'écrasant aléatoirement à sa surface et en déduire cette répartition.
@@ -68,19 +70,20 @@ Si on prend la possibilités (4): 6 chemins possibles
 
 Si on récupère toutes possibilités:
 
-| Possibilités | *p*  | Billes | Chemins | probabilité |
-|:------------:|------|:------:|:-------:|-------------|
-| (1)          | 0    | WWWW   | 0       | 0           |
-| (2)          | 0.25 | BWWW   | 3       | 0.15        |
-| (3)          | 0.5  | BBWW   | 8       | 0.40        |
-| (4)          | 0.75 | BBBW   | 9       | 0.45        |
-| (5)          | 1    | BBBB   | 0       | 0           |
+| Possibilités | *p*  | Billes | Chemins | plausibilité |
+|:------------:|------|:------:|:-------:|--------------|
+| (1)          | 0    | WWWW   | 0       | 0            |
+| (2)          | 0.25 | BWWW   | 3       | 0.15         |
+| (3)          | 0.5  | BBWW   | 8       | 0.40         |
+| (4)          | 0.75 | BBBW   | 9       | 0.45         |
+| (5)          | 1    | BBBB   | 0       | 0            |
 
 > Things that can happen more ways are more plausible
 
-*P* est la probabilité de bleu
+*P* est la probabilité de bleu. C'est définit comme la probabilité a priori (*prior posibility*).
 
-la plausibilité pour chaque possibilité est son nombre de chemins divisés par le nombre de chemins possible.
+la plausibilité pour chaque possibilité est son nombre de chemins divisés par le nombre de chemins possible ou parfois appelé le *Likelihood*. Dans des cas plus complexes c'est une fonction de distribution associée à une variable.
+
 
 ``` R
 chemins <- c(3, 8, 9)
@@ -101,9 +104,14 @@ Ici on tire une autre bille bleu:
 
 Les règles sont:
 
-1. Avoir un modèle explicatif de comment chaque observations est produite en fonction de toutes les possibilités
+1. Avoir un modèle explicatif de comment chaque observations est produite en fonction de toutes les possibilités, dans le livre c'est la *data story* ou comment sont produites les données.
 2. Compter les moyens de produire ce que l'on observe pour chaque possibilités
-3. Les plausibles le sont par rapport aux options de (2)
+3. Les plausibles le sont par rapport aux options de (2).
+
+Deux principes à garder en tête :
+
+- la certitude du modèle n'en fais pas forcement un bon (formulé autrement cela indique qu'il est confiant dans son "*small world*" pas qu'il colle au "*big world*")
+- il est important de comprendre ce qui est mis de coté par le modèle et ce qu'il fait comme inférence
 
 ### On retourne au globe
 
@@ -137,7 +145,7 @@ Dans le cadre d'analyse bayesienne il n'y pas de contrôle d'erreur (*error cont
 
 Le premier travail est d'écrire nos hypothèses et toutes leurs probabilités.
 
-Il y a deux types de variables les données (*data*) et des paramètres (*parameters*).
+Il y a deux types de variables les données (*data*) et des paramètres (*parameters*). Les paramètres sont, en général ce qui n'est pas observé. 
 
 *data* :
 - $W$: nombre d'W observé
@@ -151,10 +159,16 @@ Ou: le nombre de chemin pour faire W et L en fonction de $p$
 C'est une fonction de probabilité binomiale (ici est utilisée pour faire notre décompte de type *garden of forking paths* )
 
 ``` R
-dbinom( W, W+L, P)
+W <- 6
+W_L <- 9 # nombre de tirrage ou size
+P <- 0.5 # probabilité d'avoir l'un ou l'autre, ici fixé
+dbinom( W, W_L, P)
 ```
 
-dbinon: binomiale density
+Dans R les distributions ont une lettre avant:
+- *d* correspond à *density*
+- *r* à *random samples*
+- *p* aux probabilités cumulées
 
 Ici notre paramètre $p$ correspond à la proportion d'eau sur le globe
 
@@ -166,17 +180,29 @@ Le *posterior* est le produit normalisé
 
 $$ Pr(p|W,L) = \frac{Pr(W,L|p)Pr(p)}{Pr(W,L)} $$
 
-C'est la plausibilité relative de chaque valeur de p après avoir appris W,L.
+C'est la plausibilité relative de chaque valeur de p après avoir appris W,L. Ou encore avec Bayes:
+
+Posterior = (probability of the data  x Prior)/average probability of the data
+
+ Il y a des tas de façon de compter (MCMC, quadratic approximation). Ici c'est une *grid approximation*
+ 
+1. Définir la grille : combien de points sont nécessaire pour le *prior* puis une liste des valeurs des paramètres. 
+2. Calcul des valeurs du *prior*  pour chaque valeur de la grille
+3. Calcul du *likelihood* de chaque paramètres 
+4. Calcul du *posterior*  non standardisé pour chaque paramètres
+5. Standardisation du *posterior* en divisant par la somme de toutes les valeurs.
+
+L'échantillonnage est un moyen de transformer un problème compliqué de math en un problème de synthèse des données.
+
 
  ``` R
- p_grid <- seq(from = 0, to = 1, length.out = 1000)
- prob_p <- rep(1 , 1000)
- prob_data <- dbinom(6, size = 9, prob = p_grid)
- posterior <- prob_data * prob_p
- posterior <- posterior / sum(posterior)
+ p_grid <- seq(from = 0, to = 1, length.out = 1000) # definition de la grille (1)
+ prob_p <- rep(1 , 1000) # un prior flat 1 (2)
+ prob_data <- dbinom(6, size = 9, prob = p_grid) # ici prob reprend une grille (3)
+ posterior <- prob_data * prob_p # (4)
+ posterior <- posterior / sum(posterior) # standardisation (5)
  ```
-
- Il y a des tas de façon de compter (MCMC, quadratic approximation).
+ 
 
 ### Du *posterior** à la prédiction
 
@@ -190,7 +216,6 @@ Il y a parfois beaucoup de paramètres, un modèle est un résultat de nombreux 
  w <- rbinom(1e4, size = 9, prob = samples) # posterior predictive
  ```
 
-L'échantillonnage est un moyen de transformer un problème compliqué de math en un problème de synthèse des données.
 
 MCMC ne produit que des échantillons.
 
@@ -206,6 +231,3 @@ On peut les utiliser pour examiner les a priori.
 ## Synthèse:
 
 Analyse bayesienne des données: pour toutes possibilités de produire des données on va compter les chemins qui les produisent, les chemins ayant plus de chance sont plus plausibles.
-
-
-
