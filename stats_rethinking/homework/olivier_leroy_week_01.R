@@ -50,3 +50,10 @@ eighty_nine_HDPI <- rethinking::HPDI(samples, c(0.89))
 plot_my_posterior(posterior)
 abline(v = eighty_nine_quantile, col = "red")
 abline(v = eighty_nine_HDPI, col = "blue")
+
+diff(eighty_nine_quantile) > diff(eighty_nine_HDPI)
+
+# The Percentil Interval take more values on the right side of the distribution.
+# It is also wider by definition: HDPI target the narrowest interval to include the most probable paramater values.
+# If I just had the information from intervals, I could have assume a symetrical shape for the distribution
+# and fail to remember that we can't have less than 50% of water.
