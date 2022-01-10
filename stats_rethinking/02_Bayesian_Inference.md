@@ -364,4 +364,119 @@ HPDI(samples, prob = .5)
 
 Dans le cadre d'une gaussienne, ils sont pareils. HPDI est plus gourmand en calcul et est plus sensible au nombre d’échantillons que le pourcentils intervals.
 
+#### Estimation d'un points
+
+En prenant en compte la distribution de l'ensemble de la distribution postérieure qu'elle valeur doit on prendre ? L'estimation bayésienne est l’ensemble de la distribution donc prendre un seul point est loin d'être toujours une bonne idée.
+
+Un premier point utile est celui avec le plus de probabilité à posteriori. Il est appelé le MAP : *maximum a posteriori*
+
+``` R
+p_grid[ which.max(posterior) ]
+```
+
+On peut aussi obtenir le mode (sur les échantillons), la moyenne ou la médiane. Pour savoir lequel choisir on peut utiliser une *loss function**. L'idée est que la perte (si on mise une somme) est proportionnelle à l’écart à la bonne réponse. Apparemment c'est la médiane qui maximise nos gains.
+
+Ici p = 0.5 comme décision
+
+``` R
+sum( posterior*abs( 0.5 - p_grid ) )
+```
+
+Si on calculer pour toutes les valeurs de p (dans l'approximation par grille) on passe par un sapply :
+
+``` R
+loss <- sapply( p_grid , function(d) sum( posterior*abs( d - p_grid ) ) )
+```
+
+Puis on peut demander ce qui minimise nos pertes:
+
+``` R
+p_grid[ which.min(loss) ]
+```
+
+Ce qui est très proche de la médiane. Dans ce cas on a utiliser la "perte absolue". Si on avait pris la perte quadratic $(d-p)²$ qui conduit à la moyenne.
+
+#### Échantillonner pour simuler
+
+Un autre outils courant des échantillons est lors de simulations. Produire des observations à partir d'un modèle est utile pour plusieurs raisons :
+
+- *Model design* : on peut échantillonner sur le posterior mais aussi sur le prior pour vous ce que le modèle suppose.   
+- *Model Checking** : Après la collecte de données on peut vérifier si il correspond bien aux données.  
+- *Software validation* : on peut aussi vérifier ce que fait le logiciel  
+- *Research design* : On peut faire des simulations pour tester le design de capture de données, par exemple une analyse de puissance  
+- *Forecasting*  : On peut faire des prédictions et comparer nos prédictions aux données
+
+#### Dummy data
+
+Les fonctions de Likelihoods marchent dans les deux sens (c'est surtout du à nos hypothèses dont le fait que le nouveau tirage n'influe pas le prochain tirage je trouve). En fonction des observations passées on peut savoir la plausibilité d'une nouvelle observation et en fonction des paramétrés on peut définir un likelihood qui va produire une distribution dans lequel on peut échantillonner pour simuler des observations.
+
+On appelle ce type d'observations *dummy data* pour les distingués des observations réelles.
+
+Likelihoods semble se traduire par vraisemblance. La fonction de vraisemblance du jeté de globe est une binomiale.
+
+En prenant deux lancés, les possibilités d'avoir de l'eau sont 0, 1 ou 2 et si on prend 70% de couverture d'eau cela donne :
+
+``` R
+dbinom( 0:2 , size=2 , prob=0.7 )
+```
+
+Soit 9% d'avoir 0 eau, 42% d'en avoir 1 et 49% 2.
+
+Si on veut échantillonner cette distribution on peut utiliser `sample` mais R fourni un moyen plus simple pour les fonctions "classiques" :
+
+``` R
+rbinom( 1 , size=2 , prob=0.7 )
+```
+
+Ici c'est pour un échantillon de taille de 1 qui nous retourne 0 si 0 eau sur deux lancé, 1 pour un eau pour 2 lancé et 2 pour deux eau. r devant binon signifie random.
+
+On peut en faire 10k :
+
+ ``` R
+dummy_w <- rbinom( 1e5 , size=2 , prob=0.7 )
+table(dummy_w)/1e5 
+ ```
+
+On est proche des valeur de proba mais on sera toujours un peu fluctuant.
+
+``` R
+dummy_w <- rbinom( 1e5 , size=9 , prob=0.7 )
+simplehist( dummy_w , xlab="dummy water count" ) # attention c´est une fonction de rethinking (pas ultra sexy de plus) mais qui gagne du tps
+```
+
+> "In neither case is “sampling” a physical act. In both cases, it’s just a mathematical device and produces only small world"
+
+Ici je pense qu'il y a une polysémie sur samples. Un échantillonnage spatial me semble correspondre à un "physical act".
+
+#### Model checking
+
+Il faut vérifier que le modèle marche correctement et répond au objectif.
+
+Il faut vérifier si le programme utilisé fait bien ce que l'on souhaite.
+
+##### le model est il adéquate ?
+
+Ici comme le modèle est par définition inexacte il est important de regarder quel part des données n'est pas bien retranscrit. Pour le moment nous allons apprendre à combiner l échantillonage sur simulations avec l'échantillonnage sur les paramètres à partir de la distribution posterieur.
+
+Il y a d'abord l'incertitude des observations. Pour chaque valeur du paramètre de *p* il y un unique patrons possible d'observations que le modèle implique. Même si on connaît *p* on ne sait pas ce que les observations vont nous retourner (sauf pour p = 0 ou 1). Il y a aussi une incertitude sur la valeur de *p* (et donc sur tout ce qui dépend de *p*). Pour chaque valeur de *p* on peut générer des distributions postérieures. On peut générer des échantillonnages pour chacune de ces distributions, en faire une moyenne que l'on va nommer la *posterior predictive distribution*.
+
+Prendre en compte qu'un seul paramètre de *p*, le plus probable conduit à surestimer.
+
+``` R
+w <- rbinom( 1e4 , size=9 , prob=0.6 ) # pourgénerer un sampling
+w <- rbinom( 1e4 , size=9 , prob=samples ) # ici la prob est "propagés"
+```
+
+Comme les valeurs échantillonnée de p sont proportionnelles à la distribution posterieure.
+
+Pour le momemt on est partit du principe que chaque tirage est independant. Ce qui meme dans notre cas de lancement de globe est peu probable avec par exemple une présence concentré des terres/mers.
+
+Si on prend un tirage de 9 globes : W L W W W L W L W
+
+La plus grande serie du meme type est 3 (W W W), le nombre de changement d'un état à un autre est 6. Ce sont deux facon de mesurer la corrélation entre les échantillons. On peut produire des simulations et regarder ou sont représenter ces mesures dans nos simulations.
+
+### conclusion
+
+Ce chapitre visait à introduire les distributions postérieures. Les fondements de nos techniques est de tirer dans ces distributions ce qui transforme un problème d'intégrales à un problèmes de synthèses. Les vérifications des prédictions du posterieur combine l'incertitude des paramètres décrits par distribution postérieure avec l'incertitude des résultats décrit par la fonction de vraisemblance.
+
 
