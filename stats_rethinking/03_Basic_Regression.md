@@ -29,7 +29,7 @@ La moyenne comme somme pondérée des autres variables.
 
 De nombreux cas particuliers: ANOVA, ANCOVA, t-test, MANOVA
 
-Peux aussi être utilisé comme un modèle génératif. 
+Peut aussi être utilisé comme un modèle génératif. 
 
 En fonction de supposés sur la moyenne et la variance la distribution normale peut nous aider à compter toutes les possibilités de chemins.
 
@@ -37,29 +37,16 @@ En fonction de supposés sur la moyenne et la variance la distribution normale p
 
 Deux idées:
 
-1. Génératif: la somme de fluctuation tends vers une distribut
+1. Génératif: la somme de fluctuation tends vers une distribution normale
 
-2. Statistique: Pour estimer la moyenne et la variance est la distribution la moins informative (ie on a juste besoin de ces deux paramètres)  
+2. Statistique: Pour estimer la moyenne et la variance c'est la distribution la moins informative (ie on a juste besoin de ces deux paramètres)  
 
 
-Pas besoin d'avoir des variables distribuées normalement pour que le modèle soit utile.
 Pas besoin d'avoir des variables distribuées normalement pour que le modèle soit utile.
 
 ### Mise en place de modèles Gaussiens
 
-besoin d'avoir des variables distribuées normalement pour que le modèle soit utile.
-
-Objectif:
-
-1. Langage pour représenter des modèles
-
-2. Comment calculer des distributions à posteriori plus volumineuse
-
-3. Construire et comprendre les modèle linéaires.
-
-### Mise en place de modèles Gaussiens
-
-besoin d'avoir des variables distribuées normalement pour que le modèle soit utile.
+Besoin d'avoir des variables distribuées normalement pour que le modèle soit utile.
 
 Objectif:
 
@@ -119,7 +106,7 @@ $$ W = f(H) $$
 
 Le poids est en fonction de la hauteur.
 
-Ici on va utiliser un modèle statique de modèle génératif mais il en existe des dynamique. 
+Ici on va utiliser un modèle statique de modèle génératif mais il en existe des dynamiques. 
 
 $$ y_{i} = \alpha + \beta x_{i} $$ 
 
@@ -143,13 +130,14 @@ $\theta$ écart type
 
 > Each x value has a different expectation, $E(y|x) = \mu$
 
-$$ W_{i} Normal(\mu_{i}, \sigma) $$
+$$ W_{i} \sim Normal(\mu_{i}, \sigma) $$
 
 $$ \mu_{i} = \alpha + \beta H_{i} $$
 
 ``` R
 alpha <- 0 # un individu quit fait 0cm fait 0kg
 beta <- 0.5
+sigma <- 5
 n_individuals <- 100
 
 H <- runif(n_individuals, 130, 170)
@@ -174,7 +162,7 @@ $$ \theta \sim Uniform(0,1) $$
 
 Sigma est uniforme car l'écart type est toujours positif. On des paramètres comme sigma qui sont dit *scale parameters*. Ils sont toujours positifs.    
 
-Il est important de simuler à partir des distributions à priori pour comprendre ce qu'elles impliques. 
+Il est important de simuler à partir des distributions à priori pour comprendre ce qu'elles impliquent. 
 
 ``` R
 n_samples <- 10
@@ -272,11 +260,11 @@ Posterior : $$ Pr(\alpha, \beta, \sigma | W, H) $$
 
 Ce que le modèle apprend est la combinaison des trois. 
 
-Rien que si l'on prend 100 valeurs pour chaque paramètres cela fait 1 millions (produit de 4 $Pr$).
+Rien que si l'on prend 100 valeurs pour chaque paramètre cela fait 1 millions (produit de 4 $Pr$).
 
 On peut le faire avec une approximation par grille mais c'est lourd.
 
-On va utiliser une **approximation Gaussienne** ou **quadratic** ou **laplace**.
+On va utiliser une **approximation Gaussienne** ou **quadratic** ou **approximation de Laplace**.
 
 C'est une méthode qui impose une un espace continu mais suivant une forme gaussienne.
 
