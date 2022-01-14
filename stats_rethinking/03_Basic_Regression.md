@@ -117,14 +117,7 @@ $\alpha$ : intercept
 $\beta$ : la pente
 
 Dans une régression linéaire, c'est n'est pas ou est la valeur exacte mais ou est sa moyenne.  
-
-La régression linéaire nous indique ou est l'espérance de la valeur.   
-
-$$ y_{i} \sim Normal(\mu_{i}, \sigma)$$  
-
-$$\mu_{i} = \alpha + \beta x_{i}$$
-
-$\mu_{i}$ : expectation   
+Toutes les données ne seront pas sur la ligne mais leur moyenne oui. 
 
 $\theta$ écart type  
 
@@ -266,7 +259,7 @@ On peut le faire avec une approximation par grille mais c'est lourd.
 
 On va utiliser une **approximation Gaussienne** ou **quadratic** ou **approximation de Laplace**.
 
-C'est une méthode qui impose une un espace continu mais suivant une forme gaussienne.
+C'est une méthode qui impose un espace continu mais suivant une forme gaussienne.
 
 4. Validation du modèle / Analyse des données
 
