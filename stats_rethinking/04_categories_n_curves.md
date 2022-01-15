@@ -193,31 +193,62 @@ Ce que l'on veut faire ensuite:
 
 ``` R
 xseq <- seq( from = 130, to = 190, len = 50 )
+plot( NULL, xlim = c(130, 180), ylim = c(30, 60),
+     xlab = "height (cm)", ylab = "weight (kg)")
 
 # when do we defined m_adults2
 muF <- link(m_SHW,
             data = list(S = rep(1, 50),
                         H = xseq,
                         Hbar = mean(d$height)))
-lines( xseq, apply(muF, 2, mean), lwd = 3, col = 4)
+lines( xseq, apply(muF, 2, mean), lwd = 3, col = 2)
 
 muM <- link(m_SHW,
             data = list(S = rep (2, 50),
                         H = xseq,
-                        Hbar = mean(d$weight)))
-lines( xseq, apply( nuM, 2, mean), lwd = 3, col = 4)
+                        Hbar = mean(d$height)))
+lines( xseq, apply( muM, 2, mean), lwd = 3, col = 4)
 
 mu_contrast <- muF - muM
 
+plot( NULL, xlim = range(xseq), ylim = c(-6, 8),
+     xlab = "height (cm)", ylab = "weight contrast (F-M)")
+for ( p in c(0.5, 0.6, 0.7, 0.8, 0.9, 0.99) )
+  shade( apply(mu_contrast, 2, PI, prob = p ), xseq)
+abline(h = 0, lty = 2)
 
 ```
+
+### Full Bayes
+
+On a utilisé deux modèles pour les *estimands* mais il est possible de le faire avec un seul modèle puis d'utiliser la *joint posterior* pour obtenir chacun des deux.
+
+``` R
+m_SHW_full <- quap(
+  alist(
+   # Weight
+    W ~ dnorm(mu, sigma),
+    mu <- a[S] + b[S]*(H - Hbar),
+    a[S] ~ dnorm(60, 10),
+    b[S] ~ dlnorm(0, 1),
+    sigma ~ dunif(0, 10),
+
+    # Height
+    H ~ dnorm(nu, tau),
+    nu <- h[S],
+    h[S] ~ dnorm(160, 10),
+    tau ~ dunif(0, 10)
+  ), data = dat
+)
+```
+
 
 ### synthèse: inférence avec les modèles linéaires
 
 Avec plus d'une variable, un modèle scientifique et statistique ne seront pas toujours les mêmes.
 
 1. On explicite chaque *estimand*  
-2. On designe un modele statistique pour chacun 
+2. On design un modèle statistique pour chacun 
 3. On calcule chaque *estimand*
 
 Ou:
