@@ -238,9 +238,35 @@ m_SHW_full <- quap(
     nu <- h[S],
     h[S] ~ dnorm(160, 10),
     tau ~ dunif(0, 10)
+    
   ), data = dat
 )
+
+precis(m_SHW_full, depth = 2)
 ```
+
+#### Simulaion des interventions
+
+``` R
+post <- extract.samples(m_SHW_full)
+Hbar <- dat$Hbar
+n <- 1e4
+
+with( post, {
+# simulation W pour S = 1
+  H_S1 <- rnorm(n, h[, 1], tau )
+  W_S1 <- rnorm(n, a[, 1] + b[, 1]*(H_S1 - Hbar ), sigma)
+
+# W pour S = 2
+  H_S2 <- rnorm(n, h[,2], tau)
+  W_S2 <- rnorm(n, a[, 2] + b[ , 2]*(H_S2-Hbar), sigma )
+
+# compute contrast
+  W_do_s <<- W_S2 - W_S1
+} )
+```
+
+
 
 
 ### synthèse: inférence avec les modèles linéaires
