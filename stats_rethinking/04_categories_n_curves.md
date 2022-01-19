@@ -54,17 +54,17 @@ On va prendre la seconde option: plus simple pour augmenter le nombre de catégo
 |:-----------:|:----:|:-------:|:------:|:-----:|
 | Index value | 1    | 2       | 3      | 4     |
 
-$$ \alpha = [\alpha_{1}, \alpha_{2}, alpha_{3}, \alpha_{4}] $$
+$$ \alpha = [\alpha_{1}, \alpha_{2}, \alpha_{3}, \alpha_{4}] $$
 
 alpha est un vecteur de paramètres que l'on va chercher à estimer.
 
-$$ y_{i} \sim Normal(\mu_{i), \sigma) $$  
+$$ y_{i} \sim Normal(\mu_{i}, \sigma) $$  
 
 $$ \mu_{i} = \alpha_{color[i]} $$  
 
 On repasse au poids/taille :
 
-$$ W_{i} \sim Normal(\mu_{i}, \sigmae) $$  
+$$ W_{i} \sim Normal(\mu_{i}, \sigma) $$  
 
 $$ \mu_{i} = \alpha_{S[i]} $$  
 
@@ -76,7 +76,7 @@ $$ \alpha = [\alpha_{1}, \alpha_{2}] $$
 
 Si on prend 1: femme et 2: homme 
 
-$ \alpha_{S[i]} $ devient $ \alpha_{2} $ dans le cas d'un homme
+$\alpha_{S[i]}$ devient $\alpha_{2}$ dans le cas d'un homme
 
 On doit assigner des a priori: 
 
@@ -147,7 +147,7 @@ Pour le moment on a travailler sur l'effet sur sexe sur le poids via les deux ch
 
 ### Index variables et lignes
 
-$$ W_{i} \sim Normal(\mu_{i},, \sigma) $$  
+$$ W_{i} \sim Normal(\mu_{i}, \sigma) $$  
 
 $$ \mu_{i} = \alpha + \beta(H_{i} - \hat(H)) $$
 
@@ -264,10 +264,15 @@ with( post, {
 # compute contrast
   W_do_s <<- W_S2 - W_S1
 } )
+
+# une autre option automatisée
+HWsim <- sim(m_SHW_full,
+             data = list(S = c(1,2)),
+             vars = c("H", "W"))
+
+w_do_s_auto <- HWsim$W[ , 2] - HWsim$W[ ,1]
+
 ```
-
-
-
 
 ### synthèse: inférence avec les modèles linéaires
 

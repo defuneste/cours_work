@@ -151,7 +151,7 @@ $$ \alpha \sim Normal(0,1) $$
 
 $$ \beta \sim Normal(0,1) $$
 
-$$ \theta \sim Uniform(0,1) $$
+$$ \sigma \sim Uniform(0,1) $$
 
 Sigma est uniforme car l'écart type est toujours positif. On des paramètres comme sigma qui sont dit *scale parameters*. Ils sont toujours positifs.    
 
