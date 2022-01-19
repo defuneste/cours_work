@@ -137,18 +137,17 @@ lines(Aseq, mu_ci[2, ], lty = 2)
 lines(Aseq, pred_ci[1, ], lty = 2)
 lines(Aseq, pred_ci[2, ], lty = 2)
 
-# I am still surprise by those numbers, a new born can be 7kg ?
+# I am still surprise by those numbers, a new born can be 7kg ? Should we treat 0-1 years old apart
 # To summarize at the end, we have a mean of growth rate around 1.34kg/year (en moyenne).
 
 
                                         # 3 ============================================
 
-str(d_2)
 # I will keep the same key
 # girls : 1, boys : 2
 
-# step 1 data prep
 
+                                        # step 1 data prep
 dat <- list(
   W = d_2$weight,
   A = d_2$age,
@@ -156,7 +155,8 @@ dat <- list(
   S = d_2$male + 1
 )
 
-# step 2 model
+                                        # step 2 model
+
 
 m_2_Syoungs <- quap(
   alist(
@@ -191,3 +191,7 @@ mu_contrast <- post_m2_SY$a[, 2] - post_m2_SY$a[ ,1]
 
 dens(mu_contrast, xlim = c(-2,6), lwd = 3, col = 1 ,
      xlab = "posterior mean weight contrast (kg)")
+
+mean(mu_contrast)
+PI(mu_contrast, prob = 0.89)
+# boy tend to be 1.56 kg (in mean) heavier than girls but this mean cover a huge range from no difference to 3kg.
