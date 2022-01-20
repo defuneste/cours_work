@@ -144,4 +144,162 @@ plot(rethinking::precis(m_DMA))
 
 ## The Pipe
 
+X et Y sont associés 
+
+$$ Y \not\!\perp\!\!\!\perp X $$
+
+Influence de X est transmisse à Y en passant par Z 
+
+Une fois stratifié par Z il n'y a plus d'association 
+
+$$ Y \perp\!\!\!\!\perp  X|Z $$
+
+Il est statistiquement proche de Fork mais conceptuellement très différent.
+
+``` R
+
+library("Rlab")
+n <- 1000
+X <- rbern(n , 0.5)
+Z <- rbern(n , (1 - X) * 0.1 + X * 0.9 )
+Y <- rbern(n , (1 - Z) * 0.1 + Z * 0.9 )
+
+table(X, Y)
+cor(X, Y)
+
+
+```
+
+### Un exemple de Pipe
+
+Il y a 100 plantes qui sont attaqués par un champignon. Une partie est traité par un antifongique et pas l'autre. 
+
+On mesure la croissance et les champignons 
+
+On cherche à estimer l'effet du traitement sur la croissance des plantes.
+
+Fungus -> hauteur t 1 <- hauteur t 0
+
+Le traitement a un effet sur fungus et sur la hauteur (en + ou -)
+
+Le chemin de T est à deux niveau.
+
+Ici si on stratifie avec F on bloque un chemin.  
+
+(besoin de lire page 170-175)
+
+Cela s'appelle *post-treatment bias*
+
+
+## The Collider
+
+X -> Z <- Y
+
+Un peu l'opposé du fork
+
+X et Y ne sont pas associés 
+
+$$ Y \perp\!\!\!\!\perp  X|Z $$
+
+X et Y ont une influence sur Z
+
+Une fois stratifié Z, X et Y sont associés
+
+$$ X \not\!\perp\!\!\!\perp X|Z $$
+
+Quand on apprend sur Z on apprend forcément sur X et Y.
+
+``` R
+
+n <-1000
+X <- rbern(n , 0.5)
+Y <- rbern(n , 0.5)
+Z <- rbern(n, ifelse(X+Y > 0, 0.9, 0.2) )
+
+table(X, Y)
+cor(X, Y)
+
+```
+
+Apprendre sur le collider aide à apprendre sur les combinaissons de correlation entre X et Y existantes.
+
+Si on ajoute un collider dans un modèle on ajoute un facteur de confusion (en pensant tenir compte d'un facteur de confusion).
+
+#### Un exemple de Collider 
+
+Suppose 200 demandes de financement (exemple dans chapitre 6)
+
+Il y a deux notations une sur la nouveauté (N) et une sur leur crédibilité (T). 
+
+Ensuite l'agence de financement sélectionne celle qui ont le plus haut scores (en fonction de l'addition des deux). Il y alors une corrélation négative entre les deux notations.
+
+C'est un biais (collider) lié  à la sélection des données.
+
+A: financement est accordé ou pas 
+
+N -> A <- T
+
+Comme peux de demandes sont hautes dans N et T cela donne une corrélation négative. 
+
+Un autre exemple : les restaurants ils peuvent se maintenir car ils ont un bon emplacement et/ou faire de la bonne nourriture. -> mauvaise nourriture dans les bons emplacements 
+
+cf. p 176.177
+
+Il y a deux moyens d'être marié dams le modèle soit on vie assez longtemps et on finit par se marier soit on est heureux et donc on se marrie plus jeunes.
+
+## The descendant
+
+Un descendant agit en fonction de quoi il est attaché.
+
+Ici on prend un Pipe avec un descendant 
+
+X -> Z -> Y
+     | 
+     A
+     
+X et Y sont associés à travers Z
+
+A détient de l'info de Z
+
+Une fois stratifié par Z, X et Y sont moins associés.
+
+``` R
+
+n <- 1000
+X <- rbern(n , 0.5)
+Z <- rbern(n , (1 - X) * 0.1 + X * 0.9)
+Y <- rbern(n , (1 - Z) * 0.1 + Z * 0.9)
+A <- rbern(n , (1 - Z) * 0.1 + Z * 0.9)
+
+table(X, Y)
+cor(X, Y)
+
+```
+
+Les descendants sont partouts car beaucoup de mesure que l'on prend sont des proxies de ce que l'on cherche a mesurer. 
+
+Les solutions: *factor analysis*, *measurement error*, social networks
+
+un exemple 
+
+B <- U -> A
+
+U -> X
+     |
+U -> Y
+
+
+## Facteur de confusion non observé
+
+Il y a un effet non mesuré (U) entre les parents et enfants. (ex. le quartier)
+
+un exemple les parents sur les enfants et les grands parents sur les parents et les enfants.
+
+G -> P <- U
+|     |
+|___> C <- U
+
+On est intéressé par l effet G -> C que se passe t il quand on conditionne sur P.
+
+Que se passe t il ? 
 
