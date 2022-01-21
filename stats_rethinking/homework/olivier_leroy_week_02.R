@@ -58,6 +58,17 @@ result_1$individual <- 1:3
                                         # step 5 display as table
 result_1[,c(5,4,1:3)]
 
+                                        # correction:
+
+# you can also use sim()
+
+h_sim <- sim(m_homework_1, data = list(
+                             H = c(140,160,175),
+                             Hbar = dat$Hbar
+                           ))
+
+Ew <- apply(h_sim, 2, mean)
+# etc
                                         # 2 ================================
 
                                         # step 1 data prep'
@@ -75,32 +86,39 @@ dat = list(
   W = d_2$weight,
   A = d_2$age,
   BarA = mean(d_2$age)
-
 )
 
 
                                         # step 2 defining the model
 set.seed(42)
 n_samples <- 20
-alpha <- rnorm(n_samples, 20, 4)
+alpha <- rnorm(n_samples, 5, 1) # I had 20 , 4
 beta <- rlnorm(n_samples, 0, 1)
 BarA <- 6
 Aseq <- seq(from = 0, to = 13, by = 1)
 
 plot(NULL, xlim = c(0, 13), ylim = c(0, 35),
      xlab = "Age (years)", ylab = "Weight (kg)")
+
 for ( i in 1:n_samples)
 {
   lines( Aseq, alpha[i] + beta[i] * (Aseq - BarA),
          lwd = 3, col = 2
          )
 }
-# it seems I should enforce age 0 to weight 0 somehow
+
+                                        # the solution doesnt scale
+for (i in 1:n_samples) abline( alpha[i], beta[i], lwd = 3, col = 2)
+
+
+                                        # it seems I should enforce age 0 to weight 0 somehow
+# ok the way to do that was to lower alpha make sense ....
 
 m_2_list <-  alist(
   W ~ dnorm(mu, sigma),
-  mu <- alpha + beta * (A - BarA),
-  alpha ~ dnorm(20, 4), # 20kg for 6 years old +/- 16 seems good after a quick online check
+  mu <- alpha + beta * A, # removing the scaling
+  alpha ~ dnorm(5, 1), # 20kg for 6 years old +/- 16 seems good after a quick online check
+                                        # changing my bad prior after solution
   beta ~ dlnorm(0, 1),  # here always a bit unsure but 1 seems a strong slope
   sigma ~ dunif(0, 10)  # I went with the same prior than adulte
 )
@@ -196,3 +214,19 @@ dens(mu_contrast, xlim = c(-2,6), lwd = 3, col = 1 ,
 mean(mu_contrast):
 PI(mu_contrast, prob = 0.89)
 # boy tend to be 1.56 kg (in mean) heavier than girls but this mean cover a huge range from no difference to 3kg.
+                                        #
+
+## after the solution :
+
+                                        # girls
+
+plot(d_2$age, d_2$weight, lwd = 3, col = ifelse(d$male == 1, 4 , 2) ,
+     xlab = "age (years)", ylab = "weight (kg)")
+
+muF <- rethinking::link(m_2_Syoungs, data = list(A = Aseq, S = rep(1 ,13)))
+shade(apply(muF, 2, rethinking::PI, 0.89), Aseq, col = col.alpha(2 , 0.5) )
+lines( Aseq, apply(muF, 2 , mean), lwd = 3, col = 2)
+
+muM <- rethinking::link(m_2_Syoungs, data = list(A = Aseq, S = rep(2 ,13)))
+shade(apply(muM, 2, rethinking::PI, 0.89), Aseq, col = col.alpha(4 , 0.5) )
+lines( Aseq, apply(muM, 2 , mean), lwd = 3, col = 4)
