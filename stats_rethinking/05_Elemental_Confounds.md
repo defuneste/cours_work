@@ -19,6 +19,22 @@ Z est le facteur de confusion:
 
 X <- Z -> Y
 
+``` R
+library("dagitty")
+
+fork <- dagitty("dag{ X <- Z ;
+                      Z -> Y}")
+dagitty::coordinates(fork) <- list(x = c(X = 0, Z = 1, Y =2),
+                                   y = c(X = 0, Z = 0, Y =0))
+
+jpeg("fork.jpeg", width = 240, height = 60)
+plot(fork)
+dev.off()
+
+```
+
+
+
 X et Y sont associés 
 
 $$ Y \not\!\perp\!\!\!\perp X $$
@@ -33,7 +49,7 @@ X et Y ne sont pas des copies identiques elles sont influencés par d'autres fac
 
 Comme on stratifie avec Z on annule son "bruit".
 
-### avec un exemple de code:
+### Avec un exemple de code:
 
  ``` R
 library("Rlab")
