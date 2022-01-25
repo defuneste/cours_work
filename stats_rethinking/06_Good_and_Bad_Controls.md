@@ -127,4 +127,28 @@ Il faut faire attention au "case control biais" quand on conditionne en Z on exp
 
 variante "bias amplification"
 
+## Table 2 fallacy
+
+Table 1 est une série de stats descriptive
+
+Table 2 reprends une série de coefficient/paramètres mais n'indique pas leur sens ni leur éventuels causalités.
+
+Il peut y avoir dedans des facteurs de confusion qui ne sont présent dans le modèles que pour bloquer des **backdoors*. 
+
+westreich & Greenland 2013 table 2 fallacy
+
+Effet HIV sur Stroke. Il y a des facteurs à controler Fumer et l'age (qui agissent sur HIV et Stroke)
+
+Pour fermer les trois chemins avec des backdoors il faut conditionner avec Smoke et Age.
+
+Si par contre on s'intéresse à l'effet de Smoke sur stroke et que l'on conditionne sur HIV et Age on aura l'effet de smoke sur Stroke mais on perds le chemin qui passaient par HIV. 
+
+Si dans ces cas on mets les coefficients de corrélations on passe à coté d leur sens dans le modèle (un backdoor à fermer par exemple).
+
+
+Tout les coefficients ne sont pas les mêmes. Une option est de ne pas donner les coefficient pour les facteurs de coefficient. Une autre est de tout expliquer. 
+
+> Biased estimate can be better than no estimate
+
+On vera plus les *sensitivty analysis* pour essayer d'aller un plus loin quand on ne peut pas départager les facteurs de confusion. 
 
