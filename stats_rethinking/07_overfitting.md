@@ -102,7 +102,60 @@ On prend une distribution postérieur et on l'utilise pour calculer les distribu
 
 Tous point avec une faible proba, définit par le modèle, a une forte influence dans la distribution postérieure. Si ce point n'est pas présent à quoi ressemble la distribution postérieure. 
 
-Le problème est qu'on estime la distribution postérieur on ne l'a pas. Cette estimation peut être très variable surtout si on a peu d'echantillons. Pour compenser cela un type d'échantillon est utilisé:  *Pareto-smoothed importance sampling* (PSIS). Il est plus stable. Cette méthode permet aussi d'identifier des outliers. 
+Le problème est qu'on estime la distribution postérieur on ne l'a pas. Cette estimation peut être très variable surtout si on a peu d'échantillons. Pour compenser cela un type d'échantillon est utilisé:  *Pareto-smoothed importance sampling* (PSIS). Il est plus stable. Cette méthode permet aussi d'identifier des outliers. 
+
+## Akaike information criterion (AIC)
+
+Marche pour des priors plats et des grands échantillons.
+
+Maintenant on utilise *Widely Applicable IC* (WAIC).
+
+$$ WAIC(y, \circleddash) = -2(lppd -\sum_{i}var\circleddashedlog p(y_{i|\circleddah})) $$
+
+Tous ce qui est dans la somme est une manière de calculer une pénalité.
+
+WAIC, PSIS, CV servent a mesurer l'*overfitting*.
+
+La régularisation peut servir a gérer l'overfitting.
+
+## Model Mis-selection
+
+Pas une bonne idée d'utiliser ce type de technique pour une inférence causal. 
+
+Les critères prédictifs préfèrent les facteurs de confusion et les colliders.   
+
+## Outliers and robust regression
+
+Certains points ont plus de poids. Si un modèle a des outliers cela risque de conduire à un modèle trop confiant dans ces prédictions. 
+
+Dans le cas de la gestion des risques les outliers sont très importants. 
+
+> don't discreminate against data point it's not their fault
 
 
+Virer les outliers est une mauvaise chose car cela nous amène à ignorer le problème.
 
+c'est le modèle qui est mauvais pas les données. 
+
+La régression linéaire est mauvaise avec les outliers. On peut utiliser *robust regression* 
+
+Un modèle gaussien assume que la variation est la même partout et donc très surpris des outliers.
+
+si on mixe ensemble un bon paquet de distributions gaussiennes on obtient un *student-t* distribution. Elle plus épaisse (dense) aux extrémités et donc gère mieux les valeurs extrêmes. 
+
+ ``` R
+ ## le code n'est pas complet j'ai juste repris la partie changeante
+
+ D ~ dnorm(mu, sigma)
+                                        # devient
+ D ~ dstudent( 2 , mu , sigma ) # c'est dans rethinking
+ 
+ ```
+
+Il y a pleins de cas influents les données que l'on a pas mesurés (*Unobserved heterogeneity*).
+
+## Synthèse
+
+Il est possible de faire des bonnes prédiction sans connaître les causes. 
+
+Il faut cependant optimiser la prédiction avec les outils vu dans cette vidéo.  
