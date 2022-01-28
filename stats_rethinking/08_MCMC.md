@@ -84,3 +84,145 @@ On utilise **Auto-diff**: Automatic differentiation
 Cela permet de calculer le *symbolic derivatives* du modèle définit. Une matrice de dérivée, parfois appelée jacobian. En apprentissage machine: backpropagation (cas particulier d'auto-diff).  
 
 Stan vient de Stanislw Ulam (1909-1984).
+
+## HMC en pratique
+
+Voici un exemple que l'on a déjà utilisé et voici son implèmentation en quap.
+
+ ``` R
+library(rethinking)
+data(WaffleDivorce)
+d <- WaffleDivorce
+
+dat <- list(
+  D = rethinking::standardize(d$Divorce),
+  M = rethinking::standardize(d$Marriage),
+  A = rethinking::standardize(d$MedianAgeMarriage)
+)
+
+f <- alist(
+  D ~ dnorm(mu, sigma),
+  mu <- a + bM*M + bA*A,
+  a ~ dnorm(0, 0.2),
+  bM ~ dnorm(0, 0.5),
+  bA ~ dnorm(0, 0.5),
+  sigma ~ dexp(1)
+)
+
+mq <- quap( f , data = dat)
+
+library(cmdstanr)
+mc.cores = parallel::detectCores()
+mHMC <- ulam( f , data = dat)
+precis(mHMC)
+
+```
+
+## Pure Stan approach
+
+ulam sert a construire du code stan.
+
+Stan code est "portable" et tourne sur tout. 
+
+On peut afficher le code de stan en utilisant la fonction `stancode`
+
+``` R
+rethinking::stancode(mHMC)
+```
+
+
+```
+data{
+    vector[50] D;
+    vector[50] A;
+    vector[50] M;
+}
+parameters{
+    real a;
+    real bM;
+    real bA;
+    real<lower=0> sigma;
+}
+model{
+    vector[50] mu;
+    sigma ~ exponential( 1 );
+    bA ~ normal( 0 , 0.5 );
+    bM ~ normal( 0 , 0.5 );
+    a ~ normal( 0 , 0.2 );
+    for ( i in 1:50 ) {
+        mu[i] = a + bM * M[i] + bA * A[i];
+    }
+    D ~ normal( mu , sigma ); 
+
+```
+
+
+Le haut de stan reprend les données. Ici on a 50 car c'est le nombre d'états que l'on a et vector c'est le type de données. 
+
+Il faut dire ce que le computer doit gérer en mémoire. Cela permet d'éviter pas mal de debugging.
+
+La suite correspond au paramètres. Stan a besoin de savoir le type pour y appliquer différentes check et contraintes.
+
+Ex: sigma à une contrainte indiquant qu'il doit être positif.
+
+Enfin on a le modèle utilisé pour produire la distribution à posteriori. 
+
+On sauve le code de Stan dans son fichier. On peut ensuite utiliser la fcontion `rethinking::cstan` pour passer se fichier à stan. 
+
+``` R
+mHMC_stan <- cstan(file = "08_mHMC.stan", data = dat) # exemple
+```
+
+
+## Introduction des technique pour estimer ses resultats
+
+### Faire de graphs 
+
+#### trace plots
+
+La region grise est le "warmup" c'est le moment ou Stan va configurer le stepsize etc.. 
+
+On doit le faire pour chaque paramètres. On vérifie qu'ils partent pas n'importe comment. Il doit être stationnaire.   
+
+Il est bien de ne pas utiliser qu'une chaîne mais plusieurs. Cela permet d'assurer que chaque chaîne explore le bon coté de la distribution et que chaque chaîne explore la mêmes distribution. On appelle ce la **convergence**.
+
+  ``` R
+ mHMC <- ulam( f , data = dat , chains = 4, cores = 4) 
+ ```
+
+#### Trace Rank (trank) plots
+ 
+On utilise des valeurs en rang cela permet de voir si une chaîne est trop en dessus/dessous.
+
+### R-Hatfield
+
+Si des chaînes converges: 
+
+- Le départ et la fin de chaque chaîne explorent la même zone.
+
+- Les chaînes independante explorent la même zone.
+
+R-hat est un ratio de variances: quand la variance total se rapproche de la variance intra chains R-hat tend vers 1
+
+
+### n_eff 
+
+Estime le nombre effectif d'echantillons. 
+
+> How long would the chain be, if each sample was independant of the one before it? 
+
+Quand les échantillons sont autocorrelés ont a moins de n_eff. 
+
+### Divergent transitions
+
+De temps il y a des propositions (cf. l'analogie avec le roi Markov) qui sont rejetés. Si ils y en trop c'est possible que l'on est une explication faible et de possible biais. 
+
+### Exemples de mauvaises chaînes
+
+On passe de *hairy caterpilar* à des montages russes. 
+
+> When you have computational problems, often there's a problem with your model."
+
+Andrew Gelman: "the fold theorem of statistical computing"  
+
+
