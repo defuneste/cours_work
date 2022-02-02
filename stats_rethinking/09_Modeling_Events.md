@@ -100,7 +100,7 @@ A <- rbern(N, accept_rate[D, G])
 ```
  
  
- ``` R
+``` R
 N <- 1000
 # even gender distribution
 G  <- sample(1:2 , size = N, replace = TRUE)
@@ -173,8 +173,210 @@ $\frac{p_{i}}{1 - p_{i}}$ est nommé l'*odds*.
 
 Il y a une inverse de cette fonction : *inverse logit* que l'on apelle parfois logistic.
 
+$$logit(pi_{i} = log \frac{p_{i}}{1 - p_{i}}) =  $$
+
+$$logi^{-1}(q_{i}) = ? = p_{i} $$
+
+$$ pi = \frac{exp(q_{i})}{1 + exp(q_{i})} $$
 
 
+logit(p) = 0; p = 0.5
+
+logit(p) = 6; p = always
+
+logit(p) = -6; p = never
+
+
+Dans ce cas le paramètre (p) n'est pas à la même échelle que les données (0/1).
+
+### comment définit on des priori dans ce cas ?
+
+On fait des simulations.
+
+On se rappelle que l'espace de logit est entre -6 et 6 (et que ces derniers sont très extrêmes) même entre -4 et 4 on reste très très large.
+
+$$ logit(p_{i} = \alpha) $$
+
+$$ \alpha \sim Normal(0,1) $$
+
+Si on a $\alpha$ et $\beta$:
+
+``` R
+library(rethinking)
+a <- rnorm(1e4, 0, 10) # produit des courbes très tranchées
+b <- rnorm(1e4, 0, 10) # alpha (0, 1.5) et beta (0, 0.5) plus raisonnable
+
+xseq <- seq(from = -3, to = 3, len = 100)
+p <- sapply(xseq, function(x) rethinking::inv_logit(a+b*x))
+
+plot(NULL, xlim = c(-2.5, 2.5), ylim = c(0,1),
+     xlab = "x value", ylab = "probability")
+for ( i in 1:10) lines(xseq, p[i, ], lwd = 3, col = 2)
+
+```
+
+### Modèle statistique
+
+Si on veut le *total effect* on ne stratifie pas par D
+
+$$ A_{i} \sim Bernouilli(p_{i}) $$ 
+
+$$Pr(A_{i} = 1 = p_{i}) $$
+
+$$ logit(p_{i} = \alpha[G_{i}]) $$
+
+$$ p_{i} = \frac{exp(\alpha[G_{i}])}{1 + exp(\alpha[G_{i}])} $$
+
+$$ \alpha = [\alpha_{1}, \alpha_{2}]$$ ici les genres
+
+Si on pend l'effet direct de G --> A
+
+$$ A_{i = \sim Bernouilli(p_{i})} $$
+
+$$ logit(p_{i}) = \alpha[G_{i}, D_{i}] $$
+
+$$ 
+  \alpha =
+   \left[ {\begin{array}{cc}
+             \alpha_{1, 1}  & \alpha_{1,2} \\
+             \alpha_{2, 1} & \alpha_{2,2} \\
+             \end{array} } \right ] 
+  $$
+
+Avec D en colonnes et G en lignes.
+
+``` R
+
+data_sim <- list( A = A, D = D, G = G)
+
+m1 <- ulam(
+  alist(
+    A ~ bernoulli(p),
+    logit(p) <- a[G],
+    a[G] ~ normal(0, 1)
+  ), data = data_sim, chains = 4, cores = 4
+)
+
+m2 <- ulam(
+  alist(
+    A ~ bernoulli(p),
+    logit(p) <- a[G, D],
+    matrix[G,D]:a ~ normal(0, 1)
+  ), data = data_sim, chains = 4, cores = 4 
+)
+
+precis(m1, depth = 2)
+precis(m2, depth = 3)
+
+```
+
+### Analyses
+
+Pour le moment on a travailler sur une regression logistique la sortie est binaire [0, 1] et on utilise *logit link* et une distribution de Bernouilli. 
+
+Il est aussi la regréssion binomiale où on a un compte [0, N] et on utilise logit link et une distribution binomiale.
+
+Il faut restructurer les données on a un format très long (une ligne un cas)
+
+``` R
+dat_sim2 <- aggregate(A ~ G + D, data_sim, sum)
+dat_sim2$N <- aggregate(A ~ G + D, data_sim, length )$A
+```
+
+n a juste besoin de changer les ligne de codes précédentesen passant de bernoulli à binomial. 
+
+``` R
+
+data(UCBadmit)
+d <- UCBadmit 
+
+dat <- list(
+  A = d$admit,
+  N = d$applications,
+  G = ifelse(d$applicant.gender == "female", 1, 2),
+  D = as.integer(d$dept)
+)
+
+                                        #total effect gender
+
+mG <- ulam(
+  alist(
+    A ~ binomial(N, p),
+    logit(p) <- a[G],
+    a[G] ~ normal(0, 1)
+   ), data = dat, chains = 4, cores = 4
+)
+
+mGD <- ulam(
+  alist(
+    A ~ binomial(N, p),
+    logit(p) <- a[G, D],
+    matrix[G, D]:a ~ normal(0, 1)
+ ), data = dat, chains = 4, cores = 4
+)
+
+precis(mG, depth = 3)
+precis(mGD, depth = 3)
+
+```
+
+
+Les sorties via `precis` sont dures à lire. Ce qui est important c'est de regarder n_eff et Rhat4.
+
+Ils faut regarder trace plots et trace je sais plus quoi.
+
+Regardons l'effet total:
+
+``` R
+
+post1 <- extract.samples(mG)
+PrA_G1 <- inv_logit(post1$a[,1])
+PrA_G2 <- inv_logit(post1$a[,2])
+diff_prob <- PrA_G1 - PrA_G2
+dens(diff_prob, lwd = 4, col = 2, xlab = "gender contrats (probability)")
+
+```
+
+Les hommes sont avantagés.
+
+``` R
+
+post2 <- extract.samples(mGD)
+PrA <- inv_logit( post2$a )
+diff_prob_D_ <- sapply( 1:6 , function(i) PrA[,1 , i] - PrA[,2, i ])
+
+plot(NULL, xlim = c(-0.2, 0.3), ylim = c(0,25), xlab = "Gender contrast (probability)")
+for( i in 1:6)  dens (diff_prob_D_[,i], lwd = 4, col = i + 1, add = TRUE)
+
+```
+
+Qu'elle est l'effet direct moyen du genre pour chaque département.
+
+Cela dépends de la distribution des candidatures et de la probabilités que chaque homme/femme candidate à chaque départements.
+
+Une part de l'explication est que les femmes candidates à des départements spécifiques. 
+
+On doit rajouter un médiateur le genre perçu (P) entre G --> P --> A
+
+Pour calculer l'effet de P on doit moyenner (*maginalize*) sur les départements.
+
+C'est simple à faire via simulations.
+
+Ce que l'on vient de faire: *post stratification* *Re-weighting estimates for target population*
+
+Sur une fac différentes, la distribution des candidatures seraient différentes et les conséquences de l'intervention aussi.
+
+## Synthèse
+
+Pas de discrimination "global" mais:
+
+La distribution des candidatures peut être le résultats d'une discrimination.
+
+Il peut y avoir des facteur de confusion. (next lecture)
+
+Une introduction de Binomial GLM
+
+Outcome is a count with a Max
 
 
 
