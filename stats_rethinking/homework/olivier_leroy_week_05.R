@@ -61,6 +61,7 @@ mG_D <- ulam(
   )
 
 precis(mG_D, depth = 3)
+inv_logit(coef(mG_D))
 
 traceplot(mG_D)
 
@@ -105,3 +106,14 @@ plot(NULL, xlim = c(-0.3, 0.3), ylim = c(0, 20),
 for (i in 1:nb_discipline) dens( diff_prob_D[, i],
                                 lwd= 2 + 20 * w[i], col= 1 + i, add = TRUE)
 abline(v = 0, lty =  3)
+legend("topleft",
+       legend = levels(d$discipline),
+       col = 2:10,
+       lty = 1,
+       lwd = 3)
+
+                                        # 3
+# if we look at the total causal effect, we have slighly less women who get grants.
+# if we post stratified with disciplines we have different result some tend to give more grants to men (social, medical, and earth life science)
+# and other humanities, chemical and physical science tend to favor a bit more women.
+# Except humanities we have few woman who applied in this two discipline
