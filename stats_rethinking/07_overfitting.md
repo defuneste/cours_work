@@ -4,7 +4,7 @@ Quand on a pas une bonne idée de la structure que l'on cherche à atteindre com
 
 Le but de cette lecture est de construire de bonne approximation (diffèrent de bonne inférence causale).
 
-## les différents sens/problèmes de prédiction en statistique:
+## Les différents sens/problèmes de prédiction en statistique:
 
 Quelle fonction décrit ces points ? On parle de *fitting*. 
 
@@ -104,7 +104,7 @@ Tous point avec une faible proba, définit par le modèle, a une forte influence
 
 Le problème est qu'on estime la distribution postérieur on ne l'a pas. Cette estimation peut être très variable surtout si on a peu d'échantillons. Pour compenser cela un type d'échantillon est utilisé:  *Pareto-smoothed importance sampling* (PSIS). Il est plus stable. Cette méthode permet aussi d'identifier des outliers. 
 
-## Akaike information criterion (AIC)
+## Akaike Information Criterion (AIC)
 
 Marche pour des priors plats et des grands échantillons.
 
