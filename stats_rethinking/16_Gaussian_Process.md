@@ -194,7 +194,46 @@ On a deux problème conjoint:
 
 1. Qu'est ce que l'histoire (phylogénie?)
 
-2. Comment peut-on l'utiliser pour modéliser les causes. 
+2. Comment peut-on l'utiliser pour modéliser les causes? 
 
+
+#### What is history?
+
+Devenu plus précis avec la génomique. 
+
+Il y a toujours beaucoup d'incertitude, les processus ne sont pas fixes aucune phylogénie n'est correcte pour tous les traits.
+
+> le travail des statistiques n'est pas de nous donner les réponses que l'on souhaite mais de nous donner celles que l'on peut justifier (par modèle et données).
+
+Basic Truth: phylogènie n'existe pas, comme les réseaux sociaux ce sont des facteurs de compressions des données. 
+
+#### Comment on utilise une phylogénie quand on en une ? 
+
+Il n'y a pas de réponses uniques, cela dépends des causes que l'on cherche à analyser. Pour le moment ce sont les process gaussiens qui sont utilisés. 
+
+On peut faire un modèle linéaire estimant B en tant compte de G et en stratifiant par B pour ferme le backdoor path. 
+
+Ce modèle peut être étendue à toutes les espèces via MVnormal et une matrice de covariance K (qui sera un kernel de process gaussien). 
+
+$I$ est une matrice vide sauf pour sa diagonale qui est 1. Si on la multiple par $sigma^2$ on obtient une matrice vide sauf pour la diagonale avec pleins de $\sigma²$   
+
+On va ajouter le facteur de confondeur $u$. 
+
+Cela va être $u_{i}$ et on va utiliser la phylogénie pour l'obtenir. 
+
+Un modèle évolutionniste et une structure en arbre indique que les patrons de covariance sont aux pointes. La covariance varie avec la distance phylogénétique. 
+
+K va être remplacer par un kernel d'Ornstein Uhlenbeck (avec les paramètres et les prior adéquate).
+
+Le modèle utiliser va être halfnormal car on n'a besoin de résultat positif. 
+
+
+Il y a d'autres possibilités:
+
+- Automatic relevance determiantion (ARD)
+
+- Multi-output
+
+- Telemetry, navigation (real time tracking and error)
 
 
