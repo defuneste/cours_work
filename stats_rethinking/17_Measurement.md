@@ -103,11 +103,13 @@ $$e_{D,i} \sim Normal(0, S_{i}) $$
 $ S_{i} $ est fournie par le bureau des stats.
 
 ``` R
+
 data(WaffleDivorce)
 d <- WaffleDivorce
 dlist <- list(
     D_obs = standardize( d$Divorce ),
-    D_sd = d$Divorce.SE / sd( d$Divorce ),
+    D_sd = d$Divorce.SE / sd(d$Divorce),
+    M_sd = d$Marriage.SE / sd(d$Marriage),
     M = standardize( d$Marriage ),
     A = standardize( d$MedianAgeMarriage ),
     N = nrow(d)
@@ -140,19 +142,139 @@ On a fait un partial pooling.
 On va ajouter un modèle pour M et Mstar maintenant. Tous vont aller dans la meme MCMC.
 
 ``` R
+
 m15.2 <- ulam(
   alist(
     # Dstar model (observed)
     D_obs ~ dnorm( D_true , D_sd ),
+
+    # D model (unobserved)
+    vector[N]:D_true ~ dnorm( mu , sigma ),
+    mu <- a + bA*A + bM*M_true[i],
+    a ~ dnorm(0,0.2),
+    bA ~ dnorm(0,0.5),
+    bM ~ dnorm(0,0.5),
+    sigma ~ dexp( 1 ),
+
+    # Mstar model observed 
+    M_obs ~ dnorm( M_true , M_sd ),
+
+   # M model (unobserved)
+    vector[N]:M_true ~ dnorm( nu , tau ),
+    nu <- aM + bAM * A,
+    aM ~ dnorm(0, 0.2),
+    bAM ~ dnorm(0, 0.5),
+    tau ~ dexp(1)
     
-        vector[N]:D_true ~ dnorm( mu , sigma ),
-        mu <- a + bA*A + bM*M_true[i],
-        M_obs ~ dnorm( M_true , M_sd ),
-        vector[N]:M_true ~ dnorm( 0 , 1 ),
-        a ~ dnorm(0,0.2),
-        bA ~ dnorm(0,0.5),
-        bM ~ dnorm(0,0.5),
-        sigma ~ dexp( 1 )
-    ) , data=dlist , chains=4 , cores=4 )
+  ) , data=dlist , chains=4 , cores=4 )
+
 ```
+
+
+On améliore de beaucoup ici car on a un outcome (y) et un income (x). On a un partial pooling sur les deux axes.
+
+bM en ajoutant l'erreur devient plus large et supérieur à 0 (au lieu de rester autour de 0).
+
+Inclure l'erreur revient à diminuer le poids de certains états avec des estimation de mauvaises qualité. Inclure les erreurs est la seule option honnête. 
+
+## Misclassification
+
+
+Bilineal descent: généalogie du coté de la mère et du père.
+
+Leur héritage passe par la mère mais les status par le père. Le femmes bougent chez leurs maris une fois marié. La polygynie est courante. 
+
+Il est aussi acceptés qu'hommes et femmes puissent avoir des relations sexuels en dehors du mariage. 
+
+On cherche à estimer la proportion d'enfant d'on le pére n'est pas le mari.
+
+Des tests génétiques ont été fait mais il y autour de 5% de faux positive.
+
+La *misclassification*: la version en catégorie d'erreur de mesure.
+
+On fait un DAG. Puis un modèle génératif: il prend en compte la mère et la dyade. 
+
+$$ X_{i} \sim Bernoulli(p_{i}) $$   
+
+$$ logit() = \alpha + \mu_{M[i]} + \delta_{D[i]} $$
+
+$$ Pr(Xstar_{i} = 1 | p_{i}) = p_{i} + (1 - p_{i})f $$
+
+$$ Pr(Xstar_{i} = 0 | p_{i}) = (1 - p_{i})(1 - f) $$
+
+c'est pas intuitive donc il faut faire un arbre des probabilités: 
+
+Il y a $p_{i}$ de faire $X_{i} = 1$ et donc ici de faire $1 - p_{i}$ de faire $X_{i} = 0$
+
+Si on a 0 on a 5% de faire un faux positif et donc on a une proba $f$ que Xstar soit = 1 et le reste ($1 - f$) que Xstar reste 0.
+
+Ainsi pour produire Xstar = 1 on a deux chemins, le premier qui dépend de $p_{i}$ et le second qui depend de $(1 -p)f$ (d'abord 0 puis f pour arriver à 1).
+
+Pour Xstar = 0 c'est (1-p)(1-f)
+
+``` R 
+dat$f <- 0.05
+
+mx <- ulam(
+  alist(
+    X|X==1 ~ custom(log(p+ (1-p)*F)), # ici le log car stan fait les stats sur le log scale
+    X|X==0 ~ custom(log((1-p)*(1-f))),# c est plus precis
+    logit(p) <- a + z[mom_id]*sigma * [dyad_id]*tau
+    a ~ normal(0, 1.5),
+    z[mom_id] ~ normal(0,1),
+    sigma ~ normal(0,1),
+    x[dyad_id] ~ normal(0,1),
+    tau ~ normal(0, 1)
+  ), data = dat, chains=4, cores = 4, iter = 4000,
+  constraints = list(sigma = "lower=0", tau = "lower=0")
+)
+
+```
+
+C'est une mauvais façon de compter et de le faire!
+
+Les ordinateurs utilisent un système: **Floating point arithmetic** pour les calculs. C'est important quand l'on fait des proba. Si il y a une probabilité très faible, elle se rapproche de 0 elle sera arrondie à 0. De l'autre coté si on se rapproche trop de 1.
+
+Une des solutions est de tout faire sur l'échelle logarithmique car ces problèmes deviennent alors plus rares. 
+
+Il y a toute une serie de fonctions pour cela.
+
+``` R 
+mx <- ulam(
+  alist(
+
+    X|X==1 ~ custom(log_sum_exp( log(p), log1m(p) + log(f) ),
+                    
+    X|X==0 ~ custom(log1m(p) + log1m(f)), 
+                    
+                    
+    logit(p) <- a + z[mom_id]*sigma * [dyad_id]*tau
+    a ~ normal(0, 1.5),
+    z[mom_id] ~ normal(0,1),
+    sigma ~ normal(0,1),
+    x[dyad_id] ~ normal(0,1),
+    tau ~ normal(0, 1)
+  ), data = dat, chains=4, cores = 4, iter = 4000,
+  constraints = list(sigma = "lower=0", tau = "lower=0")
+)
+
+```
+
+`log1m` est une fonction qui retourne le log( 1 - son premier argument). Ainsi `log1m(p)` correspond à log(1-p)
+
+C'est une fonction qui réduit under et overflow. 
+
+On ajoute car sur une échelle log le + correspond à une multiplication. 
+
+`log_sum_exp` va retourne le log des exposant de chaque arguments. (on passe en exposant, pour enlever le log, on somme le tout, et on log : log_sum_exp)  
+
+On peut aller encore plus loin (je reprendrais le code plus tard).
+
+Il y a bcp de problèmes lier à des erreurs de mesures. C'est le cas de ce qui utilise des juges et des testes. Pour cela il existe des "item response theory" ce qui est une sous famille de "factor analysis". 
+
+Il y a aussi "hurdlle models". C'est les cas ou on est trop bas pour détceter. 
+
+Occupancy models: not detecing something doesn't mean it isn't here. 
+
+
 
