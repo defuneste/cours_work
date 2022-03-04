@@ -173,6 +173,144 @@ G ---> Gstar et Gstar ----> mG (ce qui explique les valeurs manquante) et cela s
 
 ## Bayesian Imputation code
 
+On repart du modèle utilisé dans la leçon précédente. On a besoin de rien de plus pour obtenir les données manquantes. 
+
+Dans un cadre bayesien, la structure du modèle vient d'un contexte scientifique et une fois que l'on a l'échantillon on peut décider ce qui est un paramètre et de la données. Les valeurs observées sont des données celles non-observées sont des paramètres. 
+
+Le modèle comporte 3 sous modèles. On continue a faire des petites étapes.
+
+1. Ignorer les cas ou B à des valeurs manquantes 
+
+2. Impute (calculer la distribution à posteriori des valeurs manquantes) G et M en ignorant leurs modèles (plus pour le coté pédagogique pour voir à coté de quoi on passe). 
+
+3. Impute G utilisant le modèle
+
+4. Impute B, G, M utilisant le modèle.
+
+### Premières étapes
+
+``` R
+
+## R code 14.49
+data(Primates301)
+d <- Primates301
+d$name <- as.character(d$name)
+dstan <- d[ complete.cases( d$group_size , d$body , d$brain ) , ]
+spp_cc <- dstan$name
+
+# complete case analysis
+dstan <- d[complete.cases(d$group_size,d$body,d$brain),]
+dat_cc <- list(
+    N_spp = nrow(dstan),
+    M = standardize(log(dstan$body)),
+    B = standardize(log(dstan$brain)),
+    G = standardize(log(dstan$group_size)),
+    Imat = diag(nrow(dstan)) )
+
+# drop just missing brain cases
+dd <- d[complete.cases(d$brain),]
+dat_all <- list(
+    N_spp = nrow(dd),
+    M = standardize(log(dd$body)),
+    B = standardize(log(dd$brain)),
+    G = standardize(log(dd$group_size)),
+    Imat = diag(nrow(dd)) )
+
+dd <- d[complete.cases(d$brain),]
+table( M=!is.na(dd$body) , G=!is.na(dd$group_size) )
+
+```
+
+Il y en a peut où on ne connaît pas M (masse corporelle) mais un peu plus où l'on ne connaît pas G (taille du groupe).
+
+Si $G_{i}$ est manquant on prend le modèle existant, sinon on remplace cette valeur par un paramètre. Idem pour G.
+
+``` R
+
+library(ape)
+spp <- as.character(dd$name)
+tree_trimmed <- keep.tip( Primates301_nex, spp )
+Rbm <- corBrownian( phy=tree_trimmed )
+V <- vcv(Rbm)
+Dmat <- cophenetic( tree_trimmed )
+
+# distance matrix
+dat_all$Dmat <- Dmat[ spp , spp ] / max(Dmat)
+dat_cc$Dmat <- Dmat[ spp_obs , spp_obs ] / max(Dmat)
+
+# imputation ignoring models of M and G
+fMBG_OU <- alist(
+    B ~ multi_normal( mu , K ),
+    mu <- a + bM*M + bG*G,
+    M ~ normal(0,1),
+    G ~ normal(0,1),
+    matrix[N_spp,N_spp]:K <- cov_GPL1(Dmat,etasq,rho,0.01),
+    a ~ normal( 0 , 1 ),
+    c(bM,bG) ~ normal( 0 , 0.5 ),
+    etasq ~ half_normal(1,0.25),
+    rho ~ half_normal(3,0.25)
+)
+mBMG_OU <- ulam( fMBG_OU , data=dat_all , chains=4 , cores=4 , sample=TRUE )
 
 
+```
+
+On récupère des distributions pour chaque distribution. Pour G on est pas bon, il passe à coté de la structure de la relation entre B et G.
+
+### Étape 3
+
+Deux modeles : 
+
+``` R
+# no phylogeny on G but have submodel M -> G
+mBMG_OU_G <- ulam(
+    alist(
+        B ~ multi_normal( mu , K ),
+        mu <- a + bM*M + bG*G,
+        G ~ normal(nu,sigma),
+        nu <- aG + bMG*M,
+        M ~ normal(0,1),
+        matrix[N_spp,N_spp]:K <- cov_GPL1(Dmat,etasq,rho,0.01),
+        c(a,aG) ~ normal( 0 , 1 ),
+        c(bM,bG,bMG) ~ normal( 0 , 0.5 ),
+        c(etasq) ~ half_normal(1,0.25),
+        c(rho) ~ half_normal(3,0.25),
+        sigma ~ exponential(1)
+    ), data=dat_all , chains=4 , cores=4 , sample=TRUE )
+
+# phylogeny information for G imputation (but no M -> G model)
+mBMG_OU2 <- ulam(
+    alist(
+        B ~ multi_normal( mu , K ),
+        mu <- a + bM*M + bG*G,
+        M ~ normal(0,1),
+        G ~ multi_normal( 'rep_vector(0,N_spp)' ,KG),
+        matrix[N_spp,N_spp]:K <- cov_GPL1(Dmat,etasq,rho,0.01),
+        matrix[N_spp,N_spp]:KG <- cov_GPL1(Dmat,etasqG,rhoG,0.01),
+        a ~ normal( 0 , 1 ),
+        c(bM,bG) ~ normal( 0 , 0.5 ),
+        c(etasq,etasqG) ~ half_normal(1,0.25),
+        c(rho,rhoG) ~ half_normal(3,0.25)
+    ), data=dat_all , chains=4 , cores=4 , sample=TRUE )
+
+```
+
+On peut ajouter la phylogénie et M + G
+
+Ici cela va être fait avec Stan :
+
+Il y a différents blocs. Il y en a un pour `data` un pour `parameters` et un pour le `model`.
+
+Stan marche un peu à l'envers que le modèle mathématique. En bas on trouve les premières équations. 
+
+### Synthèse
+
+Idée principale: les valeurs manquantes sont déjà dans les distributions.
+
+Penser comme un graph et pas comme un régression: faire des sous-modèle
+
+On peut perdre pas mal d'efficience si on ne le fait pas. 
+
+
+Il y a une partie dans le ivre sur *censored observations*.
 
