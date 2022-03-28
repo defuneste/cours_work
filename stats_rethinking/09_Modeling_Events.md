@@ -43,28 +43,6 @@ on a donc deux chemins.
  
 C'est une structure classique de médiation. 
 
-4526 candidatures, divisé par département et par genre.
-
-## Dessiner le Hiboux
-
-1. Estimand
-
-2. Scientific models
-
-3. Statistical models
-
-4. analyze
-
- G (gender) --> admission
- 
- Il y a le un autre facteur le département d'admission.
- 
- G --> département --> admission 
- 
- on a donc deux chemins.
- 
- c'est une structure classique de médiation.
- 
  Les causes ne sont pas dans les données il faut y mettre bcp de contexte et de causalité venant d'ailleurs.
  
 G --> A Correspond à la discrimination directe. 
