@@ -196,4 +196,71 @@ Le taux d'acceptation dans le "generatif model" est celui du dénominateur de Ba
 
 TODO suite tester l'interval de crédibilité. 
 
+Autre approche du bayesien : ABC (TODO regarder ce que c'est). On va se donner une marge dans l'acceptation du paramètre.  
+
+
+# Peut on ameliorer le nombre de rejet que l'on avec le rejection sampling
+
+cas des MCMC, on ne va pas faire le tirage aveuglement. 
+
+A chaque étape on va tirer une valeur pas trop loin de celle ou on est (dans un distribution gaussienne). Il faut faire attention sur les bords à ne pas sortir.
+
+Il nous manque une facon de les rejeter / accepter. 
+
+xt_star est un petit mouvement 
+
+TODO verifier a=min(1,r)
+
+On va tirer un bernouilli avec proba de a 
+
+Avoir un taux d'acceptation autour de 30% c'est pas mal
+
+beta
+binomiale
+
+
+faire un fonction qui va cibler le post 
+
+``` R
+ 
+# parameter of the beta prior
+theta <- 0.1
+# observed data
+n <- 1000
+kobs <- 600
+# function returning the log of the posterior density for x
+logpost <- function(x)
+{
+(kobs + theta - 1) * log(x) + (n - kobs + theta - 1) * log( 1- x)
+}
+# tunning parameter of the Metropolis Hastings move
+delta <- 0.1
+# length of the MCMC sample
+M <- 10000
+# mcmc will be stored in a vector of size M
+mcmc <- numeric(length = M)
+# initialize counter for total number of accepted moves
+count_accept <- 0
+# draw initial value for x
+x <- runif(n = 1, min = 0, max = 1)
+for (i in 1:M) {
+# propose new value xstar close to x (normally distributed around x, of standard deviation delta)
+  xstar <- rnorm(1, mean = x, sd = 0.1)
+  if(xstar < 0 | xstar > 1 ){
+    r = exp(logpost(xstar) - logpost(x))
+    
+  } else {
+
+  }
+                                        
+  
+# check whether xstar is in the (0,1) interval
+# if yes:
+# compute log of the ratio of posterior probabilities before and after the move
+# WRITE SOME CODE HERE
+}
+
+
+```
+
 
