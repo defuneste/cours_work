@@ -36,13 +36,19 @@ Il faut vérifier:
 - autocorrelation
 - a t on assez d'itération 
 
+On va utiliser JAGS qui appartient à la famille de BUGS Bayesian inference Using Gibbs Samplings. 
+
+Il y a des outils plus ou moins performant en fonction du domaine d'application. 
+
+
 ## exemples
 
 ### premier exemple
 
 ``` R
 
-data <- read.table("seance3/donnees_ppraevia.txt, h = T")
+data <- read.table("seance3/donnees_ppraevia.txt", h = T)
+ppraevia = data$ppraevia
 
 ```
 
@@ -54,4 +60,61 @@ Modele
 fille_i ~ Bernoulli(p)
 
 P ~ uniform(0,1)
+
+### codes un modeles dans JAGS
+
+Il faut coder le modèle 
+
+``` JAGS
+model
+{
+    fille ~ dbern(p) ## on fait comme si on avait un evenement / mesure
+
+}
+
+```
+
+Dans JAGS Normal prend tau, la précision $tau = 1/sigma²$
+
+Dans JAGS on ne donne pas de nom mais on ordonne les paramètres dans un sens.
+
+le ~ est pour une relation stochastique et les relations déterministes sont indiqué comme <- 
+
+Il existe des fonctions dans JAGS.
+
+
+``` JAGS
+model
+{
+
+for (i in 1:n)
+    {
+    fille[i] ~ dbern(p) ## on fait comme si on avait un evenement / mesure
+    }
+    
+    p ~ dunif(0, 1 )
+}
+
+```
+
+Dans JAGS on a pas le droit de redéfinir une observation dans le modèle (définie une seule fois). une variable ne peut apparaître que une fois a droite. 
+
+``` JAGS
+
+model
+{
+for(i in 1:n)
+    {
+    taille_enfant[i] ~ dnorm(mu[i], tau)
+    mu[i] <- beta0 + beta1 * taille_pere[i]
+    }
+    tau <- 1/(sigma^2)
+    beta0 ~ dunif(-10, 10)
+    beta1 ~ dunif(-0.2, 0.2)
+    sigma ~ dunif(0, 1)
+}
+
+```
+
+
 

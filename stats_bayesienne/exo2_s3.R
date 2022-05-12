@@ -83,13 +83,13 @@ head(mcmc2_tot)
 
 ### question 4
 
+nb <- 48
 
+gen_poids <- vector(mode = "numeric",
+                    length = nb)
 
-sigma ~ runif(1, 200, 800)
-moyenne[1] ~ runif(1, 2500, 5000)
-moyenne[2] ~ runif(1, 2500, 5000)
-
-
-for (i in 1:48) {
-poids[i] ~ rnorm(moyenne[sexe[i]], sigma)
+for (i in 1:nb) {
+  sigma <- runif(1, 200, 800)
+  moyenne <- runif(1, 2500, 5000)
+  gen_poids[i] <-  rnorm(1, moyenne, sigma)
 }
