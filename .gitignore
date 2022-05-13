@@ -1,2 +1,4 @@
 stats_rethinking/ressource/
 *.html
+.Rproj.user
+seance*/**
