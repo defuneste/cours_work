@@ -1,5 +1,5 @@
 stats_rethinking/ressource/
 *.html
-.Rproj.user
+**.Rproj.user
 ## support de cours du LBBE
 stats_bayesienne/seance*/**
