@@ -1,3 +1,9 @@
+<!-- Formation stats bayesienne organisée par le LBBE 
+ https://lbbe.univ-lyon1.fr/fr/formation-statistique-bayesienne
+ Mai 2022
+ Prise de Note Olivier Leroy
+ -->
+
 # prise de note séance 3
 
 On va multiplier une loi à priori avec une fonction/loi de vraisemblance et on va retomber soit sur une loi de même type mais pas toujours. 

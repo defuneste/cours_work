@@ -1,3 +1,9 @@
+<!-- Formation stats bayesienne organisée par le LBBE 
+ https://lbbe.univ-lyon1.fr/fr/formation-statistique-bayesienne
+ Mai 2022
+ Prise de Note Olivier Leroy
+ -->
+
 # seance 2
 
 Nicolas Lartillot 05-04-2021

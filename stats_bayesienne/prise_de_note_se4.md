@@ -1,3 +1,9 @@
+<!-- Formation stats bayesienne organisée par le LBBE 
+ https://lbbe.univ-lyon1.fr/fr/formation-statistique-bayesienne
+ Mai 2022
+ Prise de Note Olivier Leroy
+ -->
+
 # Séance 4
 
 un des avantages des MCMC est la capacité à créer n'importe qu'elle type de modèle. Il faut donc s'assurer de la bonne formalisation du modèle. 
@@ -111,6 +117,8 @@ str(mcmc1_tot)
 
 sd(data$y)
 ```
+
+## partie 3 Modèle binomial négatif
 
 
 
