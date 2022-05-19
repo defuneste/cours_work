@@ -86,7 +86,7 @@ Pas besoin d'être parfait juste de faire mieux.
 
 ## Prediction penalty
 
-Si on prend la différence entre le *in* et *out of sample* on peut calculer la *PRediction penalty*.
+Si on prend la différence entre le *in* et *out of sample* on peut calculer la *Prediction penalty*.
 
 Plus le nombre d'échantillons est important plus le cout de la CV est important (on va caler N modèle pour N points).
 
