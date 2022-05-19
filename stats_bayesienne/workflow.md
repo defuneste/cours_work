@@ -1,6 +1,6 @@
 # exemple de workflow d'analyse bayesienne
 
-1. Représenter le modèle avec le Daguerre
+1. Représenter le modèle avec le DAG
 2. Définier les priors
 3. Prior x data => posterior
 4. Vérifier MCMC
