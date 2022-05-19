@@ -52,5 +52,25 @@ all.equal(bill, bob)
 
 ### Propriétés
 
+Produit : 
 
+$$ a^{r} * b^{s} = x^{r+s}  $$
+
+Quotient :
+
+$$ \frac{a^{r}}{a^{s}} = a^{r-s} $$
+
+Exposant d'exposant:
+
+$$ (a^{r})^{s} = a^{rs} $$
+
+Exposant d'un produit: 
+
+$$ (a * b)^{r} = a^{r}b^{r}  $$
+
+Exposant d'un quotient: 
+
+$$ (\frac{a}{b})^{r} = \frac{a^{r}}{b^{r}} $$
+
+## log 
 
