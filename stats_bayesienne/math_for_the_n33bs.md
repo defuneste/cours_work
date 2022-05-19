@@ -1,10 +1,12 @@
 # Un peu de log et de puissance 
 
-Je remet un peu de math utile pour le cours  
+Je remets un peu de math utile pour le cours  
 
 ## Exposant
 
-Un exposant **entier** indique le nombre de fois ou sa base apparait dans la multiplication : 
+### Définitions
+
+Un exposant **entier** indique le nombre de fois ou sa base apparaît dans la multiplication : 
 
 $$ a^{4} = a * a * a *a $$
 
@@ -16,10 +18,39 @@ $$ a^{-m} = \frac{1}{a^{m}} $$
 
 et donc:   
 
-$$ (\frac{a}{n})^{-m} = (\frac{b}{a})^{m} $$
+$$ (\frac{a}{b})^{-m} = (\frac{b}{a})^{m} $$
 
 Enfin la base affectée d'un exposant fractionnaire donne une racine.
 
+$$ a^{\frac{m}{n}} = \sqrt[n]{a^{m}} $$
+
+Dans R: 
+
+``` R
+
+## on peut utiliser 
+a = 5
+m = 3
+
+bill = a ^ m
+bill
+
+# ou **
+
+bob = a ** m
+bob
+
+all.equal(bill, bob)
+
+# il existe cependant une petite différence
+# cf: https://stackoverflow.com/questions/30043949/raise-to-power-in-r
+# et ?Arithmetic
+
+`^`(a, m)
+
+```
+
+### Propriétés
 
 
 
