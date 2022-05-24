@@ -203,3 +203,14 @@ summary(mcmc_fixe)
 ```
 
 
+
+
+
+``` R
+library("rjags")
+
+
+```
+
+
+

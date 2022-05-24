@@ -2,7 +2,7 @@
 
 library("rjags")
 
-data <- read.table("../seance6_hierarchique/men_size2.txt",
+data <- read.table("seance6_hierarchique/men_size2.txt",
                    header = TRUE)
 str(data)
 
@@ -78,3 +78,71 @@ mcmc_2 <- coda.samples(modeljags_2, "mu_k", n.iter=50000, thin=10)
 
 
 summary(mcmc_2)
+
+
+######################### semaine 7 continuité exo modele hiérarchique
+
+# Vector of (unique) country names and length of this vector
+countries <- unique(data$country)
+ncountries <- length(countries)
+
+# Vector of individual measures and countries for these individuals,
+# length of these vectors (number of individuals)
+size <- data$size
+numcountry <- match(data$country, countries)
+nindiv <- nrow(data)
+
+
+
+fonction_cght_prior <- function(prior = "dgamma(0.01, 0.01)") {
+# Data passed to JAGS
+data4JAGS <- list(size=size,
+                  numcountry=numcountry,
+                  ncountries=ncountries,
+                  nindiv=nindiv)
+##
+inits = list(list(M = 100),
+             list(M = 175),
+             list(M = 249))
+##
+model_3 <- paste0("model
+{
+M ~ dunif(100, 250)
+tau_intra ~" , prior,"
+tau_inter ~", prior,"
+sigma_intra <- 1/sqrt(tau_intra)
+sigma_inter <- 1/sqrt(tau_inter)
+for(j in 1:ncountries){
+mu[j] ~ dnorm(M, tau_inter)
+}
+for (i in 1:nindiv) {
+size[i] ~ dnorm(mu[numcountry[i]], tau_intra)
+}
+}
+")
+##
+modeljags_3  <- jags.model(file=textConnection(model_3),
+                          data=data4JAGS, inits=inits, n.chains=3)
+##
+update(modeljags_3,3000)
+##
+mcmc_3 <- coda.samples(modeljags_3, c("M", "mu", "sigma_inter", "sigma_intra"), n.iter=50000)
+print(paste0("le prior est :", prior))
+return(mcmc_3)
+##
+}
+
+mcmc_3 <- fonction_cght_prior()
+summary(mcmc_3)
+
+mcmc_4 <- fonction_cght_prior("dgamma(0.001, 0.001)")
+summary(mcmc_4)
+
+bob <- as.data.frame(as.matrix(mcmc_4))
+head(bob[,2:10])
+dim(bob)
+
+str(mcmc_4)
+boxplot(bob[,2:10])
+
+str(mcmc_4[[1]])
